@@ -39,8 +39,8 @@ SELECT table_schema
 FROM information_schema.columns
 WHERE is_updatable = 'YES'
 {{if eq $.DbSchema "*" }}
-AND table_schema NOT LIKE 'pg_%' 
-AND table_schema <> 'information_schema' 
+AND table_schema NOT LIKE 'pg_%'
+AND table_schema <> 'information_schema'
 {{else}}
 AND table_schema = '{{$.DbSchema}}'
 {{end}}
@@ -66,6 +66,9 @@ SELECT a.table_schema
     , is_nullable
     , column_default
     , character_maximum_length
+    , is_identity
+    , identity_generation
+    , substring(udt_name from 2) AS array_type
 FROM information_schema.columns a
 INNER JOIN information_schema.tables b
     ON a.table_schema = b.table_schema AND
@@ -73,8 +76,8 @@ INNER JOIN information_schema.tables b
        b.table_type = 'BASE TABLE'
 WHERE is_updatable = 'YES'
 {{if eq $.DbSchema "*" }}
-AND a.table_schema NOT LIKE 'pg_%' 
-AND a.table_schema <> 'information_schema' 
+AND a.table_schema NOT LIKE 'pg_%'
+AND a.table_schema <> 'information_schema'
 {{else}}
 AND a.table_schema = '{{$.DbSchema}}'
 {{end}}
@@ -187,7 +190,7 @@ func (c *ColumnSchema) Add() {
 	if c.get("column_default") != "null" {
 		fmt.Printf(" DEFAULT %s", c.get("column_default"))
 	}
-	// NOTE: there are more identity column sequence options according to the PostgreSQL 
+	// NOTE: there are more identity column sequence options according to the PostgreSQL
 	// CREATE TABLE docs, but these do not appear to be available as of version 10.1
 	if c.get("is_identity") == "YES" {
 		fmt.Printf(" GENERATED %s AS IDENTITY", c.get("identity_generation"))
